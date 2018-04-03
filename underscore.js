@@ -1161,7 +1161,7 @@
   };
 
   // Create a (deep-cloned) duplicate of an object.
-  var cloneDeep = function (obj, stack) {
+  var deepClone = function (obj, stack) {
     if (!_.isObject(obj)) {
       return obj;
     }
@@ -1181,14 +1181,14 @@
 
     for (var i = 0; i < length; i++) {
       var key = keys ? keys[i] : i;
-      result[key] = cloneDeep(obj[key], stack);
+      result[key] = deepClone(obj[key], stack);
     }
 
     return result;
   };
 
-  _.cloneDeep = function (obj) {
-    return cloneDeep(obj);
+  _.deepClone = function (obj) {
+    return deepClone(obj);
   };
 
   // Invokes interceptor with the obj, and then returns obj.
