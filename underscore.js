@@ -562,6 +562,7 @@
   // the faster algorithm.
   // Aliased as `unique`.
   _.uniq = _.unique = function(array, isSorted, iteratee, context) {
+    var hasMapSupported = typeof Map !== 'undefined';
     if (!_.isBoolean(isSorted)) {
       context = iteratee;
       iteratee = isSorted;
@@ -569,19 +570,26 @@
     }
     if (iteratee != null) iteratee = cb(iteratee, context);
     var result = [];
-    var seen = [];
+    var seen = hasMapSupported ? new Map() : [];
     for (var i = 0, length = getLength(array); i < length; i++) {
       var value = array[i],
           computed = iteratee ? iteratee(value, i, array) : value;
-      if (isSorted && !iteratee) {
+      if (isSorted) {
         if (!i || seen !== computed) result.push(value);
         seen = computed;
       } else if (iteratee) {
-        if (!_.contains(seen, computed)) {
-          seen.push(computed);
+        if (hasMapSupported ? !seen.has(computed) : !_.contains(seen, computed)) {
+          if (hasMapSupported) {
+            seen.set(computed);
+          } else {
+            seen.push(computed);
+          }
           result.push(value);
         }
-      } else if (!_.contains(result, value)) {
+      } else if (hasMapSupported ? !seen.has(value) : !_.contains(result, value)) {
+        if (hasMapSupported) {
+          seen.set(value);
+        }
         result.push(value);
       }
     }
@@ -596,19 +604,31 @@
 
   // Produce an array that contains every item shared between all the
   // passed-in arrays.
-  _.intersection = function(array) {
-    var result = [];
+
+  _.intersection = function() {
     var argsLength = arguments.length;
-    for (var i = 0, length = getLength(array); i < length; i++) {
-      var item = array[i];
-      if (_.contains(result, item)) continue;
-      var j;
-      for (j = 1; j < argsLength; j++) {
-        if (!_.contains(arguments[j], item)) break;
-      }
-      if (j === argsLength) result.push(item);
+    var i, length;
+    for (i = 0; i < argsLength; i++) {
+      if (arguments[i] == null) return [];
     }
-    return result;
+    var intersectionList = _.sortBy(arguments[argsLength - 1]);
+    for (i = argsLength - 2; i >= 0; i--) {
+      var inputList = arguments[i];
+      var tempList = [];
+      var j;
+      for (j = 0, length = inputList.length; j < length; j++) {
+        if (_.indexOf(intersectionList, inputList[j], true) >= 0) {
+          tempList.push(inputList[j]);
+        }
+      }
+      if (i === 0) {
+        // preserves the order of the first array
+        intersectionList = tempList;
+      } else {
+        intersectionList = _.sortBy(tempList);
+      }
+    }
+    return _.uniq(intersectionList);
   };
 
   // Take the difference between one array and a number of other arrays.
