@@ -430,23 +430,28 @@
   };
 
   // Sort the object's values by a criterion produced by an iteratee.
-  _.sortBy = function(obj, iteratee, context) {
-    var index = 0;
-    iteratee = cb(iteratee, context);
-    return _.pluck(_.map(obj, function(value, key, list) {
+  _.sortBy = function(obj, iterator, context) {
+    iterator = lookupIterator(iterator, context);
+    return _.pluck(_.map(obj, function(value, index, list) {
       return {
         value: value,
-        index: index++,
-        criteria: iteratee(value, key, list)
+        index: index,
+        criteria: iterator(value, index, list)
       };
     }).sort(function(left, right) {
-      var a = left.criteria;
-      var b = right.criteria;
-      if (a !== b) {
-        if (a > b || a === void 0) return 1;
-        if (a < b || b === void 0) return -1;
+      var leftArr = left.criteria;
+      var rightArr = right.criteria;
+      leftArr = _.isArray(leftArr) ? leftArr : [leftArr];
+      rightArr = _.isArray(rightArr) ? rightArr : [rightArr];
+      for (var i = 0, len = leftArr.length, blen = rightArr.length; i < len; i++) {
+        if (i >= blen) return 1;
+        var a = leftArr[i], b = rightArr[i];
+        if (a !== b) {
+          if (a > b || a === void 0) return 1;
+          if (a < b || b === void 0) return -1;
+        }
       }
-      return left.index - right.index;
+      return blen == len ? left.index - right.index : -1;
     }), 'value');
   };
 
