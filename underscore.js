@@ -1066,6 +1066,27 @@
     return pairs;
   };
 
+  // Produce a duplicate-free version of the array of objects.
+  // Aliased as `uniqueBy`.
+  _.uniqBy = _.uniqueBy = function(array, key) {
+    var result = [];
+    var seen = [];
+    var length = getLength(array);
+    for (var i = 0; i < length; i++) {
+      var object = array[i];
+      if (_.has(object, key)) {
+        var value = object[key];
+        if (!_.contains(seen, value)) {
+          result.push(object);
+          seen.push(value);
+        }
+      } else {
+        result.push(object);
+      }
+    }
+    return result;
+  };
+
   // Invert the keys and values of an object. The values must be serializable.
   _.invert = function(obj) {
     var result = {};
