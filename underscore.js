@@ -323,6 +323,29 @@
     return _.filter(obj, _.matcher(attrs));
   };
 
+   // **Transform** is an alternative to reduce that transforms `obj` to a new
+  // `accumulator` object.
+  _.transform = function(obj, iteratee, accumulator, context) {
+    if (accumulator == null) {
+      if (_.isArray(obj)) {
+        accumulator = [];
+      } else if (_.isObject(obj)) {
+        var Ctor = obj.constructor;
+        accumulator = baseCreate(typeof Ctor == 'function' && Ctor.prototype);
+      } else {
+        accumulator = {};
+      }
+    }
+    iteratee = optimizeCb(iteratee, context, 4);
+    var keys = !isArrayLike(obj) && _.keys(obj),
+      length = (keys || obj).length;
+    for (var index = 0; index < length; index++) {
+      var currentKey = keys ? keys[index] : index;
+      if (iteratee(accumulator, obj[currentKey], currentKey, obj) === false) break;
+    }
+    return accumulator;
+  };
+
   // Convenience version of a common use case of `find`: getting the first object
   // containing specific `key:value` pairs.
   _.findWhere = function(obj, attrs) {
